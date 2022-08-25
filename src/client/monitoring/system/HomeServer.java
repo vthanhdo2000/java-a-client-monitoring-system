@@ -5,10 +5,16 @@
  */
 package client.monitoring.system;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -19,6 +25,11 @@ public class HomeServer extends javax.swing.JFrame {
     /**
      * Creates new form HomeServer
      */
+    ServerSocket ss;
+    Socket s;
+    DataOutputStream doutMain;
+    DataInputStream dinMain;
+
     public HomeServer() {
         initComponents();
     }
@@ -39,6 +50,9 @@ public class HomeServer extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         lbIP = new javax.swing.JLabel();
         btnExit = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        txtAreaStatus = new javax.swing.JTextArea();
+        btnSend = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -63,10 +77,21 @@ public class HomeServer extends javax.swing.JFrame {
 
         lbIP.setText("None");
 
-        btnExit.setText("exit");
+        btnExit.setText("Exit");
         btnExit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnExitActionPerformed(evt);
+            }
+        });
+
+        txtAreaStatus.setColumns(20);
+        txtAreaStatus.setRows(5);
+        jScrollPane1.setViewportView(txtAreaStatus);
+
+        btnSend.setText("Send");
+        btnSend.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSendActionPerformed(evt);
             }
         });
 
@@ -74,25 +99,32 @@ public class HomeServer extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(22, 22, 22)
-                .addComponent(jLabel1)
-                .addGap(73, 73, 73)
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(lbIp, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addGap(22, 22, 22)
+                        .addComponent(jLabel1)
+                        .addGap(73, 73, 73)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lbIp, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 61, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lbIP)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnExit))))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(lbIP)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnExit)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 196, Short.MAX_VALUE)
+                            .addComponent(btnSend, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -106,12 +138,115 @@ public class HomeServer extends javax.swing.JFrame {
                     .addComponent(jLabel4)
                     .addComponent(lbIP)
                     .addComponent(btnExit))
-                .addContainerGap(327, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 297, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnSend)
+                .addContainerGap())
         );
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
+
+    public class HandleServer extends Thread {
+
+        public class StartSending extends Thread {
+
+            public String name;
+            public DataOutputStream dout;
+            public DataInputStream din;
+
+            public StartSending(String name, DataOutputStream dout, DataInputStream din) {
+                this.name = name;
+                this.dout = dout;
+                this.din = din;
+            }
+
+            public void run() {
+                String str = "";
+                while (true) {
+                    //str = msg_area.getText();
+                    try {
+                        dout.writeUTF(str);
+                    } catch (IOException ex) {
+                        Logger.getLogger(HomeServer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(HomeServer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        }
+
+        public class StartReceiving extends Thread {
+
+            public String name;
+            public DataOutputStream dout;
+            public DataInputStream din;
+
+            public StartReceiving(String name, DataOutputStream dout, DataInputStream din) {
+                this.name = name;
+                this.dout = dout;
+                this.din = din;
+            }
+
+            public void run() {
+                String str = "";
+                while (true) {
+                    try {
+                        str = din.readUTF();
+                        if (str.equals("Exit")) {
+                            txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n<" + name + " Disconnected>");
+                            this.finalize();
+                        } else {
+                            txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n" + name + " :- " + str);
+                        }
+                    } catch (IOException ex) {
+                        Logger.getLogger(HomeServer.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (Throwable ex) {
+                        JOptionPane.showMessageDialog(null, "Couldnt Stop the thread");
+                    }
+
+                }
+            }
+        }
+        
+        public void run(){
+            String str;
+            try{            
+                    ss = new ServerSocket(3001);
+                    while(true){
+                        s=ss.accept();
+                        dinMain=new DataInputStream(s.getInputStream());
+                        doutMain= new DataOutputStream(s.getOutputStream());
+                        str=dinMain.readUTF();
+                        txtAreaStatus.setText(txtAreaStatus.getText()+"\n<"+str+" Connected >");
+                        new StartSending(str,doutMain,dinMain).start();
+                        new StartReceiving(str,doutMain,dinMain).start();
+                        
+                    }
+            }
+            catch(Exception e){
+                try{
+                    JOptionPane.showMessageDialog(null, "Could Not Establish server");
+                    HomeInit h = new HomeInit();
+                    new HomeServer().setVisible(false);
+                    h.setVisible(true);
+                }catch(Exception e2){
+
+                }
+            }
+        }
+    }
+
+    public void go() {
+        this.setVisible(true);
+        txtAreaStatus.setText("Server Started...");
+        new HandleServer().start();
+    }
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
         // TODO add your handling code here:
@@ -131,6 +266,10 @@ public class HomeServer extends javax.swing.JFrame {
         this.setVisible(false);
         new HomeInit().setVisible(true);
     }//GEN-LAST:event_btnExitActionPerformed
+
+    private void btnSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnSendActionPerformed
 
     /**
      * @param args the command line arguments
@@ -162,19 +301,21 @@ public class HomeServer extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new HomeServer().setVisible(true);
-
+                new HomeServer().go();
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnExit;
+    private javax.swing.JButton btnSend;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbIP;
     private javax.swing.JLabel lbIp;
+    private javax.swing.JTextArea txtAreaStatus;
     // End of variables declaration//GEN-END:variables
 }

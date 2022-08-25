@@ -5,6 +5,13 @@
  */
 package client.monitoring.system;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author acer
@@ -14,8 +21,60 @@ public class HomeClient extends javax.swing.JFrame {
     /**
      * Creates new form HomeClient
      */
+    static Socket s;
+    static DataInputStream din;
+    static DataOutputStream dout;
+    static String ip;
+    static String publicIp;
+
     public HomeClient() {
         initComponents();
+    }
+
+    class HandleClient extends Thread {
+
+        HomeClient c;
+
+        public HandleClient(HomeClient c) {
+            this.c = c;
+        }
+
+        public void run() {
+            try {
+                //s=new Socket(ip,ClientHome.portNumber); 
+                //InetAddress a=new InetAddress(publicIp);
+
+                s = new Socket(InetAddress.getByName(publicIp), ClientConnection.portNumber, InetAddress.getByName(ip), ClientConnection.portNumber);
+
+                din = new DataInputStream(s.getInputStream());
+                dout = new DataOutputStream(s.getOutputStream());
+                dout.writeUTF(ClientConnection.name);
+                String str = "";
+                int i = 0;
+                while (str != "Exit") {
+                    str = din.readUTF();
+                    if (str == "Exit") {
+                        txtAreaSend.setText(str);
+                    } else {
+                        txtAreaSend.setText(str);
+                    }
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Server is not online, Please Try again", "Error in Connection", JOptionPane.ERROR_MESSAGE);
+                c.setVisible(false);
+                new ClientConnection().setVisible(true);
+            }
+        }
+    }
+
+    public void go() {
+        this.setVisible(true);
+        ip = ClientConnection.ip;
+        //InetAddress addr = InetAddress.getLocalHost();
+        //String ipClient = addr.getHostAddress();
+        publicIp = "192.168.100.12";
+        lbNameClient.setText(ClientConnection.name);
+        new HandleClient(this).start();
     }
 
     /**
@@ -29,28 +88,50 @@ public class HomeClient extends javax.swing.JFrame {
 
         jLabel1 = new javax.swing.JLabel();
         btnExit = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        txtAreaSend = new javax.swing.JTextArea();
+        btnSend = new javax.swing.JButton();
+        lbNameClient = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
         jLabel1.setText("Client");
 
-        btnExit.setText("exit");
+        btnExit.setText("Exit");
         btnExit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnExitActionPerformed(evt);
             }
         });
 
+        txtAreaSend.setColumns(20);
+        txtAreaSend.setRows(5);
+        jScrollPane1.setViewportView(txtAreaSend);
+
+        btnSend.setText("Send");
+
+        lbNameClient.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
+        lbNameClient.setText("None");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(26, 26, 26)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 439, Short.MAX_VALUE)
-                .addComponent(btnExit)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(26, 26, 26)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(lbNameClient, javax.swing.GroupLayout.PREFERRED_SIZE, 179, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 270, Short.MAX_VALUE)
+                        .addComponent(btnExit))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 192, Short.MAX_VALUE)
+                            .addComponent(btnSend, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -59,8 +140,13 @@ public class HomeClient extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
-                    .addComponent(btnExit))
-                .addContainerGap(341, Short.MAX_VALUE))
+                    .addComponent(btnExit)
+                    .addComponent(lbNameClient))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 274, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnSend)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -110,6 +196,10 @@ public class HomeClient extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnExit;
+    private javax.swing.JButton btnSend;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lbNameClient;
+    private javax.swing.JTextArea txtAreaSend;
     // End of variables declaration//GEN-END:variables
 }

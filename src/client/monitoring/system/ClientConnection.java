@@ -14,6 +14,11 @@ public class ClientConnection extends javax.swing.JFrame {
     /**
      * Creates new form ClientConnection
      */
+    
+    public static String ip;
+    public static String name;
+    public static int portNumber;
+    
     public ClientConnection() {
         initComponents();
     }
@@ -49,6 +54,11 @@ public class ClientConnection extends javax.swing.JFrame {
         jLabel3.setText("Name:");
 
         btnConnect.setText("Connect");
+        btnConnect.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnConnectActionPerformed(evt);
+            }
+        });
 
         btnExit.setText("Exit");
         btnExit.addActionListener(new java.awt.event.ActionListener() {
@@ -122,6 +132,16 @@ public class ClientConnection extends javax.swing.JFrame {
         this.setVisible(false);
         new HomeInit().setVisible(true);
     }//GEN-LAST:event_btnExitActionPerformed
+
+    private void btnConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConnectActionPerformed
+        // TODO add your handling code here:
+        ClientConnection.ip= txtIp.getText().trim();
+        ClientConnection.name=txtName.getText().trim();
+        ClientConnection.portNumber=Integer.parseInt(txtPort.getText().trim());
+        this.setVisible(false);
+        new HomeClient().go();
+        
+    }//GEN-LAST:event_btnConnectActionPerformed
 
     /**
      * @param args the command line arguments
