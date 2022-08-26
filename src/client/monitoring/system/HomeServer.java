@@ -13,6 +13,9 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -147,7 +150,7 @@ public class HomeServer extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 829, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 172, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
@@ -346,15 +349,23 @@ public class HomeServer extends javax.swing.JFrame {
 
     private void btnBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowseActionPerformed
         // TODO add your handling code here:
-        fileChooser.showDialog(this, "Select");
-        File file = fileChooser.getSelectedFile();
         
-        if(file != null){
-            filePath = file.getPath();
-            if(this.isWin32()){ filePath = filePath.replace("\\", "/"); }
-            jTextField2.setText(filePath);
-            jButton1.setEnabled(true);
-        }
+        Path currentRelativePath = Paths.get("");
+        String pathString = currentRelativePath.toAbsolutePath().toString();
+        jTextField2.setText(pathString);
+        
+//        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+//        File f = fileChooser.getSelectedFile();
+//        String filename = f.getAbsolutePath();
+//        jTextField2.setText(filename);
+//        fileChooser.showDialog(this, "Select");
+//        File file = fileChooser.getSelectedFile();
+//        
+//        if(file != null){
+//            filePath = file.getPath();
+//            if(this.isWin32()){ filePath = filePath.replace("\\", "/"); }
+//        }
+
     }//GEN-LAST:event_btnBrowseActionPerformed
 
     /**
