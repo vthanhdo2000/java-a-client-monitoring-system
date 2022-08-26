@@ -126,7 +126,7 @@ public class HomeClient extends javax.swing.JFrame {
                         String msgTime = (new Date()).toString();
                         model.addRow(new Object[]{number_of_rows+=1, msgTime, lbNameClient.getText(), kind, eventPath });
                         
-                        String sendServerData = "--1 @ " + msgTime + " @ " + lbNameClient.getText() + " @ "+ kind + " @ " + eventPath; 
+                        String sendServerData = "--1@" + msgTime + "@" + lbNameClient.getText() + "@"+ kind + "@" + eventPath; 
                         dout.writeUTF(sendServerData);
                      
                     }

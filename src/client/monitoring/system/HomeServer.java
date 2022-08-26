@@ -111,10 +111,7 @@ public class HomeServer extends javax.swing.JFrame {
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null}
+
             },
             new String [] {
                 "Stt", "Time", "Name", "Action", "Description"
@@ -277,10 +274,14 @@ public class HomeServer extends javax.swing.JFrame {
                 while (true) {
                     try {
                         str = din.readUTF();
-                        String[] arrOfStr = str.split("[ @ ]");
+                        String[] arrOfStr = str.split("[@]");
                         String a = arrOfStr[0];
                         System.out.println(a);
-                        if (a == "--1") {
+                        if (a.trim().equalsIgnoreCase("--1")) {
+                            System.out.println(arrOfStr[1]);
+                            System.out.println(arrOfStr[2]);
+                            System.out.println(arrOfStr[3]);
+                            System.out.println(arrOfStr[4]);
                             int number_of_rows = model.getRowCount();
                             model.addRow(new Object[]{number_of_rows+=1, arrOfStr[1] , arrOfStr[2],arrOfStr[3], arrOfStr[3] });
                         } else {
