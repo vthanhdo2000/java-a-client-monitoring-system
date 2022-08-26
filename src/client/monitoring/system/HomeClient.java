@@ -7,9 +7,12 @@ package client.monitoring.system;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 /**
@@ -21,36 +24,44 @@ public class HomeClient extends javax.swing.JFrame {
     /**
      * Creates new form HomeClient
      */
-    static Socket s;
+    static Socket socket;
     static DataInputStream din;
     static DataOutputStream dout;
     static String ip;
-    static String publicIp;
-
+    static String serverAddr;
+    static int port;
     public HomeClient() {
         initComponents();
     }
 
     class HandleClient extends Thread {
 
-        HomeClient c;
+        HomeClient client;
 
-        public HandleClient(HomeClient c) {
-            this.c = c;
+        public HandleClient(HomeClient cclient) {
+            this.client = client;
         }
 
         public void run() {
             try {
                 //s=new Socket(ip,ClientHome.portNumber); 
                 //InetAddress a=new InetAddress(publicIp);
-
-                s = new Socket(InetAddress.getByName(publicIp), ClientConnection.portNumber, InetAddress.getByName(ip), ClientConnection.portNumber);
-
-                din = new DataInputStream(s.getInputStream());
-                dout = new DataOutputStream(s.getOutputStream());
+                try {
+                    serverAddr = ClientConnection.ip;
+                    port = ClientConnection.portNumber;
+                    socket = new Socket(InetAddress.getByName(serverAddr), port);
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "Connect fail!!!, Please Try again", "Error in Connection", JOptionPane.ERROR_MESSAGE);
+                    client.setVisible(false);
+                    new ClientConnection().setVisible(true);
+                }
+                
+                //socket = new Socket(InetAddress.getByName(serverAddr), ClientConnection.portNumber, InetAddress.getByName(ip), ClientConnection.portNumber);
+                
+                din = new DataInputStream(socket.getInputStream());
+                dout = new DataOutputStream(socket.getOutputStream());
                 dout.writeUTF(ClientConnection.name);
                 String str = "";
-                int i = 0;
                 while (str != "Exit") {
                     str = din.readUTF();
                     if (str == "Exit") {
@@ -60,8 +71,8 @@ public class HomeClient extends javax.swing.JFrame {
                     }
                 }
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "Server is not online, Please Try again", "Error in Connection", JOptionPane.ERROR_MESSAGE);
-                c.setVisible(false);
+                JOptionPane.showMessageDialog(null, "Connect fail!!!, Please Try again", "Error in Connection", JOptionPane.ERROR_MESSAGE);
+                client.setVisible(false);
                 new ClientConnection().setVisible(true);
             }
         }
@@ -70,9 +81,6 @@ public class HomeClient extends javax.swing.JFrame {
     public void go() {
         this.setVisible(true);
         ip = ClientConnection.ip;
-        //InetAddress addr = InetAddress.getLocalHost();
-        //String ipClient = addr.getHostAddress();
-        publicIp = "192.168.100.12";
         lbNameClient.setText(ClientConnection.name);
         new HandleClient(this).start();
     }
@@ -90,8 +98,9 @@ public class HomeClient extends javax.swing.JFrame {
         btnExit = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         txtAreaSend = new javax.swing.JTextArea();
-        btnSend = new javax.swing.JButton();
         lbNameClient = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -109,29 +118,47 @@ public class HomeClient extends javax.swing.JFrame {
         txtAreaSend.setRows(5);
         jScrollPane1.setViewportView(txtAreaSend);
 
-        btnSend.setText("Send");
-
         lbNameClient.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
         lbNameClient.setText("None");
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
+            },
+            new String [] {
+                "Stt", "Time", "Name", "Action", "Description"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        jScrollPane2.setViewportView(jTable1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(26, 26, 26)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(26, 26, 26)
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(lbNameClient, javax.swing.GroupLayout.PREFERRED_SIZE, 179, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 270, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(btnExit))
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 192, Short.MAX_VALUE)
-                            .addComponent(btnSend, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 721, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 198, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -143,10 +170,10 @@ public class HomeClient extends javax.swing.JFrame {
                     .addComponent(btnExit)
                     .addComponent(lbNameClient))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 274, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(btnSend)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 321, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         pack();
@@ -155,8 +182,18 @@ public class HomeClient extends javax.swing.JFrame {
 
     private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
         // TODO add your handling code here:
-        this.setVisible(false);
-        new HomeInit().setVisible(true);
+       if(JOptionPane.showConfirmDialog(null,"Do you want to exit?", "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE)==0){
+            try {
+                // TODO add your handling code here:
+                dout.writeUTF("Exit");
+                // this.setVisible(false);
+                // new HomeInit().setVisible(true);
+            } catch (IOException ex) {
+                Logger.getLogger(HomeClient.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.exit(0);
+        }
+       
     }//GEN-LAST:event_btnExitActionPerformed
 
     /**
@@ -189,16 +226,17 @@ public class HomeClient extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new HomeClient().setVisible(true);
+                new HomeClient().go();
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnExit;
-    private javax.swing.JButton btnSend;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTable jTable1;
     private javax.swing.JLabel lbNameClient;
     private javax.swing.JTextArea txtAreaSend;
     // End of variables declaration//GEN-END:variables

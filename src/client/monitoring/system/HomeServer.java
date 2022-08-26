@@ -7,6 +7,7 @@ package client.monitoring.system;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -14,6 +15,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 /**
@@ -25,15 +27,21 @@ public class HomeServer extends javax.swing.JFrame {
     /**
      * Creates new form HomeServer
      */
-    ServerSocket ss;
-    Socket s;
+    ServerSocket serverSocket;
+    Socket socket;
     DataOutputStream doutMain;
     DataInputStream dinMain;
-
+    public String filePath = "D:/Data.xml";
+    public JFileChooser fileChooser;
+    
     public HomeServer() {
         initComponents();
+        fileChooser = new JFileChooser();
     }
-
+    
+    public boolean isWin32(){
+        return System.getProperty("os.name").startsWith("Windows");
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -47,12 +55,19 @@ public class HomeServer extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         lbIp = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
+        lbPort = new javax.swing.JLabel();
         lbIP = new javax.swing.JLabel();
         btnExit = new javax.swing.JButton();
+        lbStatus = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        jTextField1 = new javax.swing.JTextField();
+        jButton1 = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
         txtAreaStatus = new javax.swing.JTextArea();
-        btnSend = new javax.swing.JButton();
+        jTextField2 = new javax.swing.JTextField();
+        btnBrowse = new javax.swing.JButton();
+        jLabel4 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -72,8 +87,8 @@ public class HomeServer extends javax.swing.JFrame {
         lbIp.setBackground(new java.awt.Color(255, 255, 255));
         lbIp.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 
-        jLabel4.setBackground(new java.awt.Color(255, 255, 255));
-        jLabel4.setText("3001");
+        lbPort.setBackground(new java.awt.Color(255, 255, 255));
+        lbPort.setText("6000");
 
         lbIP.setText("None");
 
@@ -84,46 +99,91 @@ public class HomeServer extends javax.swing.JFrame {
             }
         });
 
-        txtAreaStatus.setColumns(20);
-        txtAreaStatus.setRows(5);
-        jScrollPane1.setViewportView(txtAreaStatus);
+        lbStatus.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
+        lbStatus.setText("Disconnect");
 
-        btnSend.setText("Send");
-        btnSend.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSendActionPerformed(evt);
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
+            },
+            new String [] {
+                "Stt", "Time", "Name", "Action", "Description"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
             }
         });
+        jScrollPane1.setViewportView(jTable1);
+
+        jButton1.setText("Filter");
+
+        txtAreaStatus.setColumns(20);
+        txtAreaStatus.setRows(5);
+        jScrollPane3.setViewportView(txtAreaStatus);
+
+        btnBrowse.setText("Browse...");
+        btnBrowse.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBrowseActionPerformed(evt);
+            }
+        });
+
+        jLabel4.setText("Path:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 829, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 172, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(22, 22, 22)
-                        .addComponent(jLabel1)
-                        .addGap(73, 73, 73)
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jTextField1))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(22, 22, 22)
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lbStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(lbIp, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 61, Short.MAX_VALUE))
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lbPort, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(jLabel3)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(lbIp, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, Short.MAX_VALUE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(lbIP)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE))))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(lbIP)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(btnExit))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 196, Short.MAX_VALUE)
-                            .addComponent(btnSend, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(156, 156, 156)
+                                .addComponent(jLabel4)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 362, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(btnBrowse, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -135,13 +195,21 @@ public class HomeServer extends javax.swing.JFrame {
                     .addComponent(jLabel2)
                     .addComponent(jLabel3)
                     .addComponent(lbIp)
-                    .addComponent(jLabel4)
+                    .addComponent(lbPort)
                     .addComponent(lbIP)
-                    .addComponent(btnExit))
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 297, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnSend)
+                    .addComponent(btnExit)
+                    .addComponent(lbStatus))
+                .addGap(29, 29, 29)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton1)
+                    .addComponent(btnBrowse)
+                    .addComponent(jLabel4)
+                    .addComponent(jTextField2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane3)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -167,6 +235,7 @@ public class HomeServer extends javax.swing.JFrame {
                 String str = "";
                 while (true) {
                     //str = msg_area.getText();
+                    str = "Connection successful!";
                     try {
                         dout.writeUTF(str);
                     } catch (IOException ex) {
@@ -194,12 +263,13 @@ public class HomeServer extends javax.swing.JFrame {
             }
 
             public void run() {
+                
                 String str = "";
                 while (true) {
                     try {
                         str = din.readUTF();
                         if (str.equals("Exit")) {
-                            txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n<" + name + " Disconnected>");
+                            txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n<" + name + ": Disconnected>");
                             this.finalize();
                         } else {
                             txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n" + name + " :- " + str);
@@ -213,29 +283,32 @@ public class HomeServer extends javax.swing.JFrame {
                 }
             }
         }
-        
-        public void run(){
+
+        public void run() {
             String str;
-            try{            
-                    ss = new ServerSocket(3001);
-                    while(true){
-                        s=ss.accept();
-                        dinMain=new DataInputStream(s.getInputStream());
-                        doutMain= new DataOutputStream(s.getOutputStream());
-                        str=dinMain.readUTF();
-                        txtAreaStatus.setText(txtAreaStatus.getText()+"\n<"+str+" Connected >");
-                        new StartSending(str,doutMain,dinMain).start();
-                        new StartReceiving(str,doutMain,dinMain).start();
-                        
+            try {
+                serverSocket = new ServerSocket(HomeInit.portNumber);
+                while (true) {
+                    socket = serverSocket.accept();
+                    dinMain = new DataInputStream(socket.getInputStream());
+                    doutMain = new DataOutputStream(socket.getOutputStream());
+                    str = dinMain.readUTF();
+                    txtAreaStatus.setText(txtAreaStatus.getText() + "\n<" + str + " Connected >");
+                    try {
+                        new StartSending(str, doutMain, dinMain).start();
+                        new StartReceiving(str, doutMain, dinMain).start();
+                    } catch (Exception e) {
+                        JOptionPane.showMessageDialog(null, "What the help");
                     }
-            }
-            catch(Exception e){
-                try{
+
+                }
+            } catch (Exception e) {
+                try {
                     JOptionPane.showMessageDialog(null, "Could Not Establish server");
                     HomeInit h = new HomeInit();
                     new HomeServer().setVisible(false);
                     h.setVisible(true);
-                }catch(Exception e2){
+                } catch (Exception exception) {
 
                 }
             }
@@ -244,7 +317,8 @@ public class HomeServer extends javax.swing.JFrame {
 
     public void go() {
         this.setVisible(true);
-        txtAreaStatus.setText("Server Started...");
+        lbStatus.setText("started...");
+        lbPort.setText("" + HomeInit.portNumber + "");
         new HandleServer().start();
     }
 
@@ -263,13 +337,25 @@ public class HomeServer extends javax.swing.JFrame {
 
     private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
         // TODO add your handling code here:
-        this.setVisible(false);
-        new HomeInit().setVisible(true);
+        if (JOptionPane.showConfirmDialog(null, "All clients will be disconnected.Do you want to exit?", "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE) == 0) {
+            System.exit(0);
+        }
+        //this.setVisible(false);
+        //new HomeInit().setVisible(true);
     }//GEN-LAST:event_btnExitActionPerformed
 
-    private void btnSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendActionPerformed
+    private void btnBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowseActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_btnSendActionPerformed
+        fileChooser.showDialog(this, "Select");
+        File file = fileChooser.getSelectedFile();
+        
+        if(file != null){
+            filePath = file.getPath();
+            if(this.isWin32()){ filePath = filePath.replace("\\", "/"); }
+            jTextField2.setText(filePath);
+            jButton1.setEnabled(true);
+        }
+    }//GEN-LAST:event_btnBrowseActionPerformed
 
     /**
      * @param args the command line arguments
@@ -307,15 +393,22 @@ public class HomeServer extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnBrowse;
     private javax.swing.JButton btnExit;
-    private javax.swing.JButton btnSend;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTable jTable1;
+    private javax.swing.JTextField jTextField1;
+    private javax.swing.JTextField jTextField2;
     private javax.swing.JLabel lbIP;
     private javax.swing.JLabel lbIp;
+    private javax.swing.JLabel lbPort;
+    private javax.swing.JLabel lbStatus;
     private javax.swing.JTextArea txtAreaStatus;
     // End of variables declaration//GEN-END:variables
 }

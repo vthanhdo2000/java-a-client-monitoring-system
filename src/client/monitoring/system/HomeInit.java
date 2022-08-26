@@ -5,6 +5,8 @@
  */
 package client.monitoring.system;
 
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author acer
@@ -14,6 +16,7 @@ public class HomeInit extends javax.swing.JFrame {
     /**
      * Creates new form HomeInit
      */
+    public static int portNumber;
     public HomeInit() {
         initComponents();
     }
@@ -108,8 +111,14 @@ public class HomeInit extends javax.swing.JFrame {
 
     private void ServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ServerActionPerformed
         // TODO add your handling code here:
-        this.setVisible(false);
-        new HomeServer().setVisible(true);
+         try{
+            portNumber=Integer.parseInt(JOptionPane.showInputDialog("Enter Port Number to be created"));
+            this.setVisible(false);
+            new HomeServer().go();
+        }catch(Exception e){
+            
+        }
+         
     }//GEN-LAST:event_ServerActionPerformed
 
     private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
