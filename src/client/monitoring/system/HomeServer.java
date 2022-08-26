@@ -5,9 +5,11 @@
  */
 package client.monitoring.system;
 
+import static client.monitoring.system.HomeClient.filePathString;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -20,6 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -34,17 +37,18 @@ public class HomeServer extends javax.swing.JFrame {
     Socket socket;
     DataOutputStream doutMain;
     DataInputStream dinMain;
-    public String filePath = "D:/Data.xml";
     public JFileChooser fileChooser;
-    
+    public static String PathString;
+
     public HomeServer() {
         initComponents();
         fileChooser = new JFileChooser();
     }
-    
-    public boolean isWin32(){
+
+    public boolean isWin32() {
         return System.getProperty("os.name").startsWith("Windows");
     }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -203,12 +207,13 @@ public class HomeServer extends javax.swing.JFrame {
                     .addComponent(btnExit)
                     .addComponent(lbStatus))
                 .addGap(29, 29, 29)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1)
-                    .addComponent(btnBrowse)
-                    .addComponent(jLabel4)
-                    .addComponent(jTextField2))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jTextField2)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jButton1)
+                        .addComponent(btnBrowse)
+                        .addComponent(jLabel4)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jScrollPane3)
@@ -266,17 +271,27 @@ public class HomeServer extends javax.swing.JFrame {
             }
 
             public void run() {
-                
+
                 String str = "";
+                DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
                 while (true) {
                     try {
                         str = din.readUTF();
-                        if (str.equals("Exit")) {
-                            txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n<" + name + ": Disconnected>");
-                            this.finalize();
+                        String[] arrOfStr = str.split("[ @ ]");
+                        String a = arrOfStr[0];
+                        System.out.println(a);
+                        if (a == "--1") {
+                            int number_of_rows = model.getRowCount();
+                            model.addRow(new Object[]{number_of_rows+=1, arrOfStr[1] , arrOfStr[2],arrOfStr[3], arrOfStr[3] });
                         } else {
-                            txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n" + name + " :- " + str);
+                            if (str.equals("Exit")) {
+                                txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n<" + name + ": Disconnected>");
+                                this.finalize();
+                            } else {
+                                txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n" + name + " :- " + str);
+                            }
                         }
+
                     } catch (IOException ex) {
                         Logger.getLogger(HomeServer.class.getName()).log(Level.SEVERE, null, ex);
                     } catch (Throwable ex) {
@@ -322,6 +337,7 @@ public class HomeServer extends javax.swing.JFrame {
         this.setVisible(true);
         lbStatus.setText("started...");
         lbPort.setText("" + HomeInit.portNumber + "");
+        HomeServer.PathString = jTextField2.getText().trim();
         new HandleServer().start();
     }
 
@@ -349,11 +365,11 @@ public class HomeServer extends javax.swing.JFrame {
 
     private void btnBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowseActionPerformed
         // TODO add your handling code here:
-        
+
         Path currentRelativePath = Paths.get("");
         String pathString = currentRelativePath.toAbsolutePath().toString();
         jTextField2.setText(pathString);
-        
+
 //        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 //        File f = fileChooser.getSelectedFile();
 //        String filename = f.getAbsolutePath();

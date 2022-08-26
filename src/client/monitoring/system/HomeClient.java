@@ -5,17 +5,31 @@
  */
 package client.monitoring.system;
 
+import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -33,7 +47,8 @@ public class HomeClient extends javax.swing.JFrame {
     static String serverAddr;
     static int port;
     static String path;
-    
+    static String filePathString;
+
     public HomeClient() {
         initComponents();
     }
@@ -59,9 +74,8 @@ public class HomeClient extends javax.swing.JFrame {
                     client.setVisible(false);
                     new ClientConnection().setVisible(true);
                 }
-                
+
                 //socket = new Socket(InetAddress.getByName(serverAddr), ClientConnection.portNumber, InetAddress.getByName(ip), ClientConnection.portNumber);
-                
                 din = new DataInputStream(socket.getInputStream());
                 dout = new DataOutputStream(socket.getOutputStream());
                 dout.writeUTF(ClientConnection.name);
@@ -74,10 +88,51 @@ public class HomeClient extends javax.swing.JFrame {
                         txtAreaSend.setText(str);
                     }
                 }
+
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, "Connect fail!!!, Please Try again", "Error in Connection", JOptionPane.ERROR_MESSAGE);
                 client.setVisible(false);
                 new ClientConnection().setVisible(true);
+            }
+        }
+    }
+
+    class Monitoring extends Thread {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        
+        public void run() {
+            try (WatchService service = FileSystems.getDefault().newWatchService()) {
+                Map<WatchKey, Path> keyMap = new HashMap<>();
+
+                Path path = Paths.get(jTextField1.getText()); //path
+                keyMap.put(path.register(service,
+                        StandardWatchEventKinds.ENTRY_CREATE,
+                        StandardWatchEventKinds.ENTRY_DELETE,
+                        StandardWatchEventKinds.ENTRY_MODIFY,
+                        StandardWatchEventKinds.OVERFLOW), path);
+
+                WatchKey watchKey;
+
+                do {
+                    watchKey = service.take();
+                    Path eventDir = keyMap.get(watchKey);
+
+                    for (WatchEvent<?> event : watchKey.pollEvents()) {
+                        WatchEvent.Kind<?> kind = event.kind();
+                        Path eventPath = (Path) event.context();
+
+                       
+                        int number_of_rows = model.getRowCount();
+                        String msgTime = (new Date()).toString();
+                        model.addRow(new Object[]{number_of_rows+=1, msgTime, lbNameClient.getText(), kind, eventPath });
+                        
+                        String sendServerData = "--1 @ " + msgTime + " @ " + lbNameClient.getText() + " @ "+ kind + " @ " + eventPath; 
+                        dout.writeUTF(sendServerData);
+                     
+                    }
+                } while (watchKey.reset());
+
+            } catch (Exception e) {
             }
         }
     }
@@ -90,6 +145,7 @@ public class HomeClient extends javax.swing.JFrame {
         String pathString = currentRelativePath.toAbsolutePath().toString();
         jTextField1.setText(pathString);
         new HandleClient(this).start();
+
     }
 
     /**
@@ -110,11 +166,12 @@ public class HomeClient extends javax.swing.JFrame {
         jTable1 = new javax.swing.JTable();
         jTextField1 = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
-        jLabel1.setText("Client");
+        jLabel1.setText("Client:");
 
         btnExit.setText("Exit");
         btnExit.addActionListener(new java.awt.event.ActionListener() {
@@ -132,10 +189,7 @@ public class HomeClient extends javax.swing.JFrame {
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null}
+
             },
             new String [] {
                 "Stt", "Time", "Name", "Action", "Description"
@@ -153,6 +207,13 @@ public class HomeClient extends javax.swing.JFrame {
 
         jLabel2.setText("Path:");
 
+        jButton1.setText("Action");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -167,13 +228,15 @@ public class HomeClient extends javax.swing.JFrame {
                         .addGap(49, 49, 49)
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 477, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 418, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, 83, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btnExit))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 721, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 198, Short.MAX_VALUE)))
+                        .addComponent(jScrollPane1)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -185,7 +248,8 @@ public class HomeClient extends javax.swing.JFrame {
                     .addComponent(btnExit)
                     .addComponent(lbNameClient)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
+                    .addComponent(jLabel2)
+                    .addComponent(jButton1))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1)
@@ -199,7 +263,7 @@ public class HomeClient extends javax.swing.JFrame {
 
     private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
         // TODO add your handling code here:
-       if(JOptionPane.showConfirmDialog(null,"Do you want to exit?", "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE)==0){
+        if (JOptionPane.showConfirmDialog(null, "Do you want to exit?", "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE) == 0) {
             try {
                 // TODO add your handling code here:
                 dout.writeUTF("Exit");
@@ -210,8 +274,13 @@ public class HomeClient extends javax.swing.JFrame {
             }
             System.exit(0);
         }
-       
+
     }//GEN-LAST:event_btnExitActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        new Monitoring().start();
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -250,6 +319,7 @@ public class HomeClient extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnExit;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
