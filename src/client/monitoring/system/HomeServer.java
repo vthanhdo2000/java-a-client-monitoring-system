@@ -6,6 +6,7 @@
 package client.monitoring.system;
 
 import static client.monitoring.system.HomeClient.filePathString;
+import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -76,6 +77,7 @@ public class HomeServer extends javax.swing.JFrame {
         jTextField2 = new javax.swing.JTextField();
         btnBrowse = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
+        jButtonLogFile = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -143,6 +145,13 @@ public class HomeServer extends javax.swing.JFrame {
 
         jLabel4.setText("Path:");
 
+        jButtonLogFile.setText("Log FIle");
+        jButtonLogFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonLogFileActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -180,6 +189,8 @@ public class HomeServer extends javax.swing.JFrame {
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(lbIP)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(jButtonLogFile)
+                                        .addGap(37, 37, 37)
                                         .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE))))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -203,7 +214,8 @@ public class HomeServer extends javax.swing.JFrame {
                     .addComponent(lbPort)
                     .addComponent(lbIP)
                     .addComponent(btnExit)
-                    .addComponent(lbStatus))
+                    .addComponent(lbStatus)
+                    .addComponent(jButtonLogFile))
                 .addGap(29, 29, 29)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jTextField2)
@@ -388,6 +400,27 @@ public class HomeServer extends javax.swing.JFrame {
 
     }//GEN-LAST:event_btnBrowseActionPerformed
 
+    private void jButtonLogFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLogFileActionPerformed
+        // TODO add your handling code here:
+        String filePath = PathString + "Data.txt";
+        File file = new File(filePath);
+        try {
+            FileWriter fw = new FileWriter(file);
+            BufferedWriter bw = new BufferedWriter(fw);
+            
+            for( int i = 0; i < jTable1.getRowCount(); i++){
+               for( int j = 0; j < jTable1.getColumnCount(); j++){
+                   bw.write(jTable1.getValueAt(i, j).toString()+ " ");
+               }
+               bw.newLine();
+            }
+            
+            bw.close();
+            fw.close();
+        } catch (Exception e) {
+        }
+    }//GEN-LAST:event_jButtonLogFileActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -427,6 +460,7 @@ public class HomeServer extends javax.swing.JFrame {
     private javax.swing.JButton btnBrowse;
     private javax.swing.JButton btnExit;
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButtonLogFile;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
