@@ -18,6 +18,7 @@ import java.net.UnknownHostException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -276,17 +277,15 @@ public class HomeServer extends javax.swing.JFrame {
                         str = din.readUTF();
                         String[] arrOfStr = str.split("[@]");
                         String a = arrOfStr[0];
-                        System.out.println(a);
+
+                        int number_of_rows = model.getRowCount();
                         if (a.trim().equalsIgnoreCase("--1")) {
-                            System.out.println(arrOfStr[1]);
-                            System.out.println(arrOfStr[2]);
-                            System.out.println(arrOfStr[3]);
-                            System.out.println(arrOfStr[4]);
-                            int number_of_rows = model.getRowCount();
                             model.addRow(new Object[]{number_of_rows+=1, arrOfStr[1] , arrOfStr[2],arrOfStr[3], arrOfStr[3] });
                         } else {
                             if (str.equals("Exit")) {
                                 txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n<" + name + ": Disconnected>");
+                                String msgTime = (new Date()).toString();
+                                model.addRow(new Object[]{number_of_rows+=1, msgTime , name, "LOG_OUT" , "" });
                                 this.finalize();
                             } else {
                                 txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n" + name + " :- " + str);
@@ -305,14 +304,18 @@ public class HomeServer extends javax.swing.JFrame {
 
         public void run() {
             String str;
+            DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
             try {
                 serverSocket = new ServerSocket(HomeInit.portNumber);
+                int number_of_rows = model.getRowCount();
+                String msgTime = (new Date()).toString();
                 while (true) {
                     socket = serverSocket.accept();
                     dinMain = new DataInputStream(socket.getInputStream());
                     doutMain = new DataOutputStream(socket.getOutputStream());
                     str = dinMain.readUTF();
                     txtAreaStatus.setText(txtAreaStatus.getText() + "\n<" + str + " Connected >");
+                    model.addRow(new Object[]{number_of_rows+=1, msgTime , str , "LOG_IN" , "" });
                     try {
                         new StartSending(str, doutMain, dinMain).start();
                         new StartReceiving(str, doutMain, dinMain).start();
