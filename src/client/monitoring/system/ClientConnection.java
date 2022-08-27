@@ -136,7 +136,7 @@ public class ClientConnection extends javax.swing.JFrame {
     private void btnConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConnectActionPerformed
         // TODO add your handling code here:
         try {
-             ClientConnection.ip= txtIp.getText().trim();
+            ClientConnection.ip= txtIp.getText().trim();
             ClientConnection.name=txtName.getText().trim();
             ClientConnection.portNumber=Integer.parseInt(txtPort.getText().trim());
             this.setVisible(false);

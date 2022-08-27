@@ -5,6 +5,7 @@
  */
 package client.monitoring.system;
 
+import static client.monitoring.system.HomeClient.dout;
 import static client.monitoring.system.HomeClient.filePathString;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
@@ -41,7 +42,7 @@ public class HomeServer extends javax.swing.JFrame {
     DataInputStream dinMain;
     public JFileChooser fileChooser;
     public static String PathString;
-
+    
     public HomeServer() {
         initComponents();
         fileChooser = new JFileChooser();
@@ -70,7 +71,7 @@ public class HomeServer extends javax.swing.JFrame {
         lbStatus = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
-        jTextField1 = new javax.swing.JTextField();
+        jTextFieldFilter = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         txtAreaStatus = new javax.swing.JTextArea();
@@ -131,6 +132,11 @@ public class HomeServer extends javax.swing.JFrame {
         jScrollPane1.setViewportView(jTable1);
 
         jButton1.setText("Filter");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         txtAreaStatus.setColumns(20);
         txtAreaStatus.setRows(5);
@@ -161,13 +167,13 @@ public class HomeServer extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 829, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 172, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(jTextField1))
+                                .addComponent(jTextFieldFilter))
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(22, 22, 22)
                                 .addComponent(jLabel1)
@@ -220,14 +226,14 @@ public class HomeServer extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jTextField2)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jTextFieldFilter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(jButton1)
                         .addComponent(btnBrowse)
                         .addComponent(jLabel4)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane3)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3))
                 .addContainerGap())
         );
 
@@ -292,7 +298,7 @@ public class HomeServer extends javax.swing.JFrame {
 
                         int number_of_rows = model.getRowCount();
                         if (a.trim().equalsIgnoreCase("--1")) {
-                            model.addRow(new Object[]{number_of_rows+=1, arrOfStr[1] , arrOfStr[2],arrOfStr[3], arrOfStr[3] });
+                            model.addRow(new Object[]{number_of_rows+=1, arrOfStr[1] , arrOfStr[2], arrOfStr[3], arrOfStr[4] });
                         } else {
                             if (str.equals("Exit")) {
                                 txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n<" + name + ": Disconnected>");
@@ -300,7 +306,7 @@ public class HomeServer extends javax.swing.JFrame {
                                 model.addRow(new Object[]{number_of_rows+=1, msgTime , name, "LOG_OUT" , "" });
                                 this.finalize();
                             } else {
-                                txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n" + name + " :- " + str);
+                                txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n" + name + " : " + str);
                             }
                         }
 
@@ -421,6 +427,23 @@ public class HomeServer extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButtonLogFileActionPerformed
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        DefaultTableModel modelOld = (DefaultTableModel) jTable1.getModel();
+        DefaultTableModel modelFilter = modelOld;
+        
+        String filterString = jTextFieldFilter.getText().trim();
+        if (filterString.equalsIgnoreCase("")){
+            System.out.println(modelOld);
+             System.out.println(modelFilter);
+        }else {
+            //TableRowSorter<DefaultTableModel> tr = new TableRowSorter<DefaultTableModel>(Model);
+            //jTableName.setRowSorter(tr);
+            //tr.setRowFilter(RowFilter.regexFilter(JtextfieldName.getText().trim()));
+        }
+        
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -468,8 +491,8 @@ public class HomeServer extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
+    private javax.swing.JTextField jTextFieldFilter;
     private javax.swing.JLabel lbIP;
     private javax.swing.JLabel lbIp;
     private javax.swing.JLabel lbPort;
