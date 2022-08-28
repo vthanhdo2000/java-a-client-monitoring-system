@@ -30,7 +30,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.RowFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 /**
  *
@@ -49,6 +51,7 @@ public class HomeClient extends javax.swing.JFrame {
     static int port;
     static String path;
     static String filePathString;
+    DefaultTableModel model;
 
     public HomeClient() {
         initComponents();
@@ -99,9 +102,10 @@ public class HomeClient extends javax.swing.JFrame {
     }
 
     class Monitoring extends Thread {
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        //DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         
         public void run() {
+            model = (DefaultTableModel) jTable1.getModel();
             try (WatchService service = FileSystems.getDefault().newWatchService()) {
                 Map<WatchKey, Path> keyMap = new HashMap<>();
 
@@ -138,6 +142,20 @@ public class HomeClient extends javax.swing.JFrame {
         }
     }
 
+    public void filter(String query) {
+        TableRowSorter<DefaultTableModel> tr = new TableRowSorter<DefaultTableModel>(model);
+        jTable1.setRowSorter(tr);
+
+        tr.setRowFilter(RowFilter.regexFilter(query));
+    }
+    public class startFilter extends Thread {
+
+        public void run() {
+            String queString = jTextFieldFilter.getText().toLowerCase();
+
+            filter(queString);
+        }
+    }
     public void go() {
         this.setVisible(true);
         ip = ClientConnection.ip;
@@ -168,7 +186,7 @@ public class HomeClient extends javax.swing.JFrame {
         jTextField1 = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
-        jTextField2 = new javax.swing.JTextField();
+        jTextFieldFilter = new javax.swing.JTextField();
         jButton2 = new javax.swing.JButton();
         jButtonLogFile = new javax.swing.JButton();
         textQuery = new javax.swing.JTextField();
@@ -220,6 +238,12 @@ public class HomeClient extends javax.swing.JFrame {
             }
         });
 
+        jTextFieldFilter.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldFilterKeyReleased(evt);
+            }
+        });
+
         jButton2.setText("Filter");
 
         jButtonLogFile.setText("Log File");
@@ -258,7 +282,7 @@ public class HomeClient extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 370, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jTextFieldFilter, javax.swing.GroupLayout.PREFERRED_SIZE, 370, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(jButton2)
                                 .addGap(199, 199, 199)
@@ -284,7 +308,7 @@ public class HomeClient extends javax.swing.JFrame {
                     .addComponent(jButton1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jTextFieldFilter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton2)
                     .addComponent(jButtonLogFile))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -357,6 +381,17 @@ public class HomeClient extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 
+    private void jTextFieldFilterKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldFilterKeyReleased
+        // TODO add your handling code here:
+         try {
+            //new startFilter().start();
+            String queString = jTextFieldFilter.getText();
+
+            filter(queString);
+        } catch (Exception e) {
+        }
+    }//GEN-LAST:event_jTextFieldFilterKeyReleased
+
     /**
      * @param args the command line arguments
      */
@@ -404,7 +439,7 @@ public class HomeClient extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
+    private javax.swing.JTextField jTextFieldFilter;
     private javax.swing.JLabel lbNameClient;
     private javax.swing.JTextField textQuery;
     private javax.swing.JTextArea txtAreaSend;

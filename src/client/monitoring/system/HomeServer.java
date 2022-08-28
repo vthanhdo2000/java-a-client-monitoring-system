@@ -25,7 +25,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.RowFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 /**
  *
@@ -42,7 +44,8 @@ public class HomeServer extends javax.swing.JFrame {
     DataInputStream dinMain;
     public JFileChooser fileChooser;
     public static String PathString;
-    
+    DefaultTableModel model;
+
     public HomeServer() {
         initComponents();
         fileChooser = new JFileChooser();
@@ -50,6 +53,13 @@ public class HomeServer extends javax.swing.JFrame {
 
     public boolean isWin32() {
         return System.getProperty("os.name").startsWith("Windows");
+    }
+
+    public void filter(String query) {
+        TableRowSorter<DefaultTableModel> tr = new TableRowSorter<DefaultTableModel>(model);
+        jTable1.setRowSorter(tr);
+
+        tr.setRowFilter(RowFilter.regexFilter(query));
     }
 
     /**
@@ -130,6 +140,12 @@ public class HomeServer extends javax.swing.JFrame {
             }
         });
         jScrollPane1.setViewportView(jTable1);
+
+        jTextFieldFilter.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldFilterKeyReleased(evt);
+            }
+        });
 
         jButton1.setText("Filter");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -289,7 +305,8 @@ public class HomeServer extends javax.swing.JFrame {
             public void run() {
 
                 String str = "";
-                DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+                //DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+                model = (DefaultTableModel) jTable1.getModel();
                 while (true) {
                     try {
                         str = din.readUTF();
@@ -298,12 +315,12 @@ public class HomeServer extends javax.swing.JFrame {
 
                         int number_of_rows = model.getRowCount();
                         if (a.trim().equalsIgnoreCase("--1")) {
-                            model.addRow(new Object[]{number_of_rows+=1, arrOfStr[1] , arrOfStr[2], arrOfStr[3], arrOfStr[4] });
+                            model.addRow(new Object[]{number_of_rows += 1, arrOfStr[1], arrOfStr[2], arrOfStr[3], arrOfStr[4]});
                         } else {
                             if (str.equals("Exit")) {
                                 txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n<" + name + ": Disconnected>");
                                 String msgTime = (new Date()).toString();
-                                model.addRow(new Object[]{number_of_rows+=1, msgTime , name, "LOG_OUT" , "" });
+                                model.addRow(new Object[]{number_of_rows += 1, msgTime, name, "LOG_OUT", ""});
                                 this.finalize();
                             } else {
                                 txtAreaStatus.setText(txtAreaStatus.getText().trim() + "\n" + name + " : " + str);
@@ -322,7 +339,8 @@ public class HomeServer extends javax.swing.JFrame {
 
         public void run() {
             String str;
-            DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+            //DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+            model = (DefaultTableModel) jTable1.getModel();
             try {
                 serverSocket = new ServerSocket(HomeInit.portNumber);
                 int number_of_rows = model.getRowCount();
@@ -333,7 +351,7 @@ public class HomeServer extends javax.swing.JFrame {
                     doutMain = new DataOutputStream(socket.getOutputStream());
                     str = dinMain.readUTF();
                     txtAreaStatus.setText(txtAreaStatus.getText() + "\n<" + str + " Connected >");
-                    model.addRow(new Object[]{number_of_rows+=1, msgTime , str , "LOG_IN" , "" });
+                    model.addRow(new Object[]{number_of_rows += 1, msgTime, str, "LOG_IN", ""});
                     try {
                         new StartSending(str, doutMain, dinMain).start();
                         new StartReceiving(str, doutMain, dinMain).start();
@@ -355,6 +373,15 @@ public class HomeServer extends javax.swing.JFrame {
         }
     }
 
+    public class startFilter extends Thread {
+
+        public void run() {
+            String queString = jTextFieldFilter.getText().toLowerCase();
+
+            filter(queString);
+        }
+    }
+
     public void go() {
         this.setVisible(true);
         lbStatus.setText("started...");
@@ -362,6 +389,7 @@ public class HomeServer extends javax.swing.JFrame {
         HomeServer.PathString = jTextField2.getText().trim();
         new HandleServer().start();
     }
+
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
         // TODO add your handling code here:
@@ -413,14 +441,14 @@ public class HomeServer extends javax.swing.JFrame {
         try {
             FileWriter fw = new FileWriter(file);
             BufferedWriter bw = new BufferedWriter(fw);
-            
-            for( int i = 0; i < jTable1.getRowCount(); i++){
-               for( int j = 0; j < jTable1.getColumnCount(); j++){
-                   bw.write(jTable1.getValueAt(i, j).toString()+ " ");
-               }
-               bw.newLine();
+
+            for (int i = 0; i < jTable1.getRowCount(); i++) {
+                for (int j = 0; j < jTable1.getColumnCount(); j++) {
+                    bw.write(jTable1.getValueAt(i, j).toString() + " ");
+                }
+                bw.newLine();
             }
-            
+
             bw.close();
             fw.close();
         } catch (Exception e) {
@@ -429,20 +457,19 @@ public class HomeServer extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        DefaultTableModel modelOld = (DefaultTableModel) jTable1.getModel();
-        DefaultTableModel modelFilter = modelOld;
-        
-        String filterString = jTextFieldFilter.getText().trim();
-        if (filterString.equalsIgnoreCase("")){
-            System.out.println(modelOld);
-             System.out.println(modelFilter);
-        }else {
-            //TableRowSorter<DefaultTableModel> tr = new TableRowSorter<DefaultTableModel>(Model);
-            //jTableName.setRowSorter(tr);
-            //tr.setRowFilter(RowFilter.regexFilter(JtextfieldName.getText().trim()));
-        }
-        
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jTextFieldFilterKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldFilterKeyReleased
+        // TODO add your handling code here:
+        try {
+            //new startFilter().start();
+            String queString = jTextFieldFilter.getText();
+
+            filter(queString);
+        } catch (Exception e) {
+        }
+
+    }//GEN-LAST:event_jTextFieldFilterKeyReleased
 
     /**
      * @param args the command line arguments
