@@ -376,9 +376,12 @@ public class HomeServer extends javax.swing.JFrame {
     public class startFilter extends Thread {
 
         public void run() {
-            String queString = jTextFieldFilter.getText().toLowerCase();
+            try {
+                String queString = jTextFieldFilter.getText().toLowerCase();
 
-            filter(queString);
+                filter(queString);
+            } catch (Exception e) {
+            }
         }
     }
 
@@ -501,7 +504,10 @@ public class HomeServer extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new HomeServer().go();
+                try {
+                    new HomeServer().go();
+                } catch (Exception e) {
+                }
             }
         });
     }
